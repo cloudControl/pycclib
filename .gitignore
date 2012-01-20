@@ -5,3 +5,4 @@
 .idea/
 .bzr/
 .bzrignore
+pycclib/apiurl.py
