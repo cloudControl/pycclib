@@ -1,0 +1,7 @@
+*.iml
+*.pyc
+**/*.pyc
+*.egg-info/
+.idea/
+.bzr/
+.bzrignore
