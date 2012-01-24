@@ -6,3 +6,5 @@
 .bzr/
 .bzrignore
 pycclib/apiurl.py
+*.swp
+.DS_Store
