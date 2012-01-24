@@ -3,7 +3,7 @@
 
 import os
 import sys
-from version.py import __version__ as VERSION
+from pycclib.version import __version__ as VERSION
 
 execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
 
