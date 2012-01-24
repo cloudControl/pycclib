@@ -3,6 +3,9 @@
 
 import os
 import sys
+from pycclib.version import __version__
+
+DOWNLOAD_URL = 'https://github.com/downloads/cloudControl/pycclib/pycclib-{}.tar.gz'.format(__version__)
 
 execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
 
@@ -27,8 +30,8 @@ setup(
     description='Python library for the cloudControl API',
     author='cloudControl Team',
     author_email='info@cloudcontrol.de',
-    url='http://cloudcontrol.com',
-    download_url = 'https://github.com/downloads/cloudControl/pycclib',
+    url='https://www.cloudcontrol.com',
+    download_url = DOWNLOAD_URL,
     license = 'Apache 2.0',
     classifiers=[
           'Development Status :: 5 - Production/Stable',
