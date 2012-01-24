@@ -3,8 +3,12 @@
 
 import os
 import sys
+from version.py import __version__ as VERSION
 
 execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
+
+DOWNLOAD_URL = 'https://github.com/cloudControl/pycclib/downloads'
+#DOWNLOAD_URL = 'https://launchpad.net/pycclib/+download'
 
 try:
     from setuptools import setup, find_packages
@@ -28,7 +32,7 @@ setup(
     author='cloudControl Team',
     author_email='info@cloudcontrol.de',
     url='http://cloudcontrol.com',
-    download_url = 'https://launchpad.net/pycclib/+download',
+    download_url = DOWNLOAD_URL,
     license = 'Apache 2.0',
     classifiers=[
           'Development Status :: 5 - Production/Stable',
