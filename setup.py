@@ -28,7 +28,7 @@ setup(
     author='cloudControl Team',
     author_email='info@cloudcontrol.de',
     url='http://cloudcontrol.com',
-    download_url = 'https://github.com/cloudControl/pycclib/tags',
+    download_url = 'https://github.com/downloads/cloudControl/pycclib',
     license = 'Apache 2.0',
     classifiers=[
           'Development Status :: 5 - Production/Stable',
