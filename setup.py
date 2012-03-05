@@ -21,7 +21,7 @@ if sys.version_info < (2, 6):
 else:
    required = []
 
-required.append('httplib2>=0.6.0')
+required.append('httplib2>=0.7.4')
 
 setup(
     name='pycclib',
