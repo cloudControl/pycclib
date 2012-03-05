@@ -925,7 +925,7 @@ class Request():
         if self.cache is not None:
             h = httplib2.Http(self.cache)
         else:
-            h = httplib2.Http()
+            h = httplib2.Http(disable_ssl_certificate_validation=True)
         #
         # If the current API instance has a valid token we add
         # the Authorization
