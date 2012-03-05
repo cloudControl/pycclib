@@ -21,9 +21,8 @@ if sys.version_info < (2, 6):
 else:
    required = []
 
-required.append('httplib2==0.6.0')
+required.append('httplib2>=0.6.0')
 
-#noinspection PyUnresolvedReferences
 setup(
     name='pycclib',
     version=__version__,
