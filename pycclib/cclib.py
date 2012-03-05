@@ -925,7 +925,8 @@ class Request():
         if self.cache is not None:
             h = httplib2.Http(self.cache)
         else:
-            h = httplib2.Http(disable_ssl_certificate_validation=True)
+            h = httplib2.Http()
+
         #
         # If the current API instance has a valid token we add
         # the Authorization
@@ -1000,6 +1001,8 @@ class Request():
                 # if we tried for the fifth time we give up - and cry a little
                 if i == 5:
                     raise ConnectionException('Could not connect to API...')
+            except httplib2.SSLHandshakeError:
+                raise ConnectionException('Certificate verify failed ...')
             else:
                 break
         #
