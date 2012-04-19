@@ -44,9 +44,10 @@ import httplib2
 from pycclib.version import __version__
 
 try:
-    from pycclib.apiurl import API_URL
+    from pycclib.apiurl import API_URL, DISABLE_SSL_CHECK
 except ImportError:
     API_URL = 'https://api.cloudcontrol.com'
+    DISABLE_SSL_CHECK = False
 
 try:
     from pycclib.debugging import PYCCLIB_DEBUGGING, PYCCLIB_DEBUGGING_LEVEL
@@ -456,7 +457,7 @@ class API():
         request.delete(resource)
         return True
 
-    def create_addon(self, app_name, deployment_name, addon_name):
+    def create_addon(self, app_name, deployment_name, addon_name, options=None):
         """
             Add an alias to a deployment.
         """
@@ -467,6 +468,8 @@ class API():
             cache=self.cache,
             url=self.url)
         data = {'addon': addon_name}
+        if options:
+            data['options'] = options
         content = request.post(resource, data)
         return json.loads(content)
 
@@ -888,7 +891,7 @@ class Request():
     url = None
 
     def __init__(self, email=None, password=None, token=None, cache=None,
-        version=__version__, url=API_URL):
+        version=__version__, url=API_URL, disable_ssl_check=DISABLE_SSL_CHECK):
         """
             When initializing a Request object decide if token auth or email,
             password auth should be used. The class handles both cases
@@ -900,6 +903,7 @@ class Request():
         self.version = version
         self.cache = cache
         self.url = url
+        self.disable_ssl_check = disable_ssl_check
 
     def post(self, resource, data=None):
         if not data: data = {}
@@ -923,9 +927,9 @@ class Request():
         if not headers: headers = {}
         url = urlparse(self.url + resource)
         if self.cache is not None:
-            h = httplib2.Http(self.cache)
+            h = httplib2.Http(self.cache, disable_ssl_certificate_validation=self.disable_ssl_check)
         else:
-            h = httplib2.Http()
+            h = httplib2.Http(disable_ssl_certificate_validation=self.disable_ssl_check)
 
         #
         # If the current API instance has a valid token we add
