@@ -44,9 +44,13 @@ import httplib2
 from pycclib.version import __version__
 
 try:
-    from pycclib.apiurl import API_URL, DISABLE_SSL_CHECK
+    from pycclib.apiurl import API_URL
 except ImportError:
     API_URL = 'https://api.cloudcontrol.com'
+
+try:
+    from pycclib.apiurl import DISABLE_SSL_CHECK
+except ImportError:
     DISABLE_SSL_CHECK = False
 
 try:
@@ -198,7 +202,7 @@ class API():
         request.delete(resource)
         return True
 
-    def create_deployment(self, app_name, deployment_name=''):
+    def create_deployment(self, app_name, deployment_name='', stack=None):
         """
             Create a new deployment.
 
@@ -213,6 +217,8 @@ class API():
         data = {}
         if deployment_name:
             data['name'] = deployment_name
+        if stack:
+            data['stack'] = stack
         content = request.post(resource, data)
         return json.loads(content)
 
@@ -230,7 +236,7 @@ class API():
         return json.loads(content)
 
     def update_deployment(self, app_name, version=-1, deployment_name='',
-        min_boxes=None, max_boxes=None, billing_account=None):
+        min_boxes=None, max_boxes=None, billing_account=None, stack=None):
         """
             Updates a deployment.
 
@@ -252,6 +258,8 @@ class API():
             data['max_boxes'] = max_boxes
         if billing_account:
             data['billing_account'] = billing_account
+        if stack:
+            data['stack'] = stack
         content = request.put(resource, data)
         return json.loads(content)
 
