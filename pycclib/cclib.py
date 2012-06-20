@@ -38,7 +38,6 @@ except ImportError:
 
 import time
 from urllib import urlencode
-import warnings
 import socket
 
 import httplib2
