@@ -38,31 +38,33 @@ except ImportError:
 
 import time
 from urllib import urlencode
+import warnings
+import socket
 
 import httplib2
 
 from pycclib.version import __version__
-
+# We avoid the potential risk of somebody relying on the deprecated apiurl.py
+# by raising an exception to make sure nobody talks to the wrong API due to
+# our backwards incompatible change.
 try:
-    from pycclib.apiurl import API_URL
+    from pycclib import apiurl
 except ImportError:
-    API_URL = 'https://api.cloudcontrol.com'
-
-try:
-    from pycclib.apiurl import DISABLE_SSL_CHECK
-except ImportError:
-    DISABLE_SSL_CHECK = False
-
-try:
-    from pycclib.debugging import PYCCLIB_DEBUGGING, PYCCLIB_DEBUGGING_LEVEL
-except ImportError:
-    PYCCLIB_DEBUGGING = False
-    PYCCLIB_DEBUGGING_LEVEL = 0
+    pass
+else:
+    raise Exception('Use of apiurl.py is deprecated. Set pycclib.API_URL instead.')
 
 __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
            'TokenRequiredError', 'BadRequestError', 'ForbiddenError',
            'ConflictDuplicateError', 'GoneError', 'InternalServerError',
            'NotImplementedError', 'ThrottledError']
+
+API_URL = 'https://api.cloudcontrol.com'
+DISABLE_SSL_CHECK = False
+CACHE = None
+# Set debug to 1 to enable debugging
+DEBUG = 0
+VERSION = __version__
 
 class API():
     """
@@ -87,16 +89,11 @@ class API():
     cache = None
     url = None
 
-    def __init__(self, token=None, cache=None, url=API_URL):
+    def __init__(self, token=None):
         self.set_token(token)
-        self.cache = cache
-        self.url = url
-
-    def set_url(self, url):
-        self.url = url
 
     def check_versions(self):
-        request = Request(cache=self.cache, url=self.url)
+        request = Request()
         content = request.get('/.meta/version/')
         return json.loads(content)
 
@@ -118,9 +115,7 @@ class API():
         """
         request = Request(
             email=email,
-            password=password,
-            cache=self.cache,
-            url=self.url)
+            password=password)
         content = request.post('/token/')
         self.set_token(json.loads(content))
         return True
@@ -156,10 +151,7 @@ class API():
                 'name': app_name,
                 'type': type,
                 'repository_type': repository_type}
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.post(resource, data)
         return json.loads(content)
 
@@ -169,10 +161,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/'
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -182,10 +171,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/' % app_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -195,10 +181,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/' % app_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -210,10 +193,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/' % app_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {}
         if deployment_name:
             data['name'] = deployment_name
@@ -228,10 +208,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -247,10 +224,7 @@ class API():
         if deployment_name == '':
             deployment_name = 'default'
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'version': version}
         if min_boxes:
             data['min_boxes'] = min_boxes
@@ -269,10 +243,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -282,10 +253,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'name': alias_name}
         content = request.post(resource, data)
         return json.loads(content)
@@ -303,10 +271,7 @@ class API():
             self.requires_token()
             resource = '/app/%s/deployment/%s/alias/' % \
                 (app_name, deployment_name)
-            request = Request(
-                token=self.get_token(),
-                cache=self.cache,
-                url=self.url)
+            request = Request(token=self.get_token())
             content = request.get(resource)
         return json.loads(content)
 
@@ -317,10 +282,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/%s/' % \
             (app_name, deployment_name, alias_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -331,10 +293,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/%s/' % \
             (app_name, deployment_name, alias_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -345,10 +304,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/' % \
             (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'command': command}
         if params:
             data['params'] = params
@@ -368,10 +324,7 @@ class API():
             self.requires_token()
             resource = '/app/%s/deployment/%s/worker/' % \
                 (app_name, deployment_name)
-            request = Request(
-                token=self.get_token(),
-                cache=self.cache,
-                url=self.url)
+            request = Request(token=self.get_token())
             content = request.get(resource)
         return json.loads(content)
 
@@ -382,10 +335,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/%s/' % \
             (app_name, deployment_name, wrk_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -396,10 +346,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/%s/' % \
             (app_name, deployment_name, wrk_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -409,10 +356,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'url': url}
         content = request.post(resource, data)
         return json.loads(content)
@@ -430,10 +374,7 @@ class API():
             self.requires_token()
             resource = '/app/%s/deployment/%s/cron/' % \
                 (app_name, deployment_name)
-            request = Request(
-                token=self.get_token(),
-                cache=self.cache,
-                url=self.url)
+            request = Request(token=self.get_token())
             content = request.get(resource)
         return json.loads(content)
 
@@ -444,10 +385,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/%s/' % \
             (app_name, deployment_name, job_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -458,10 +396,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/%s/' % \
             (app_name, deployment_name, job_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -471,10 +406,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/' % (app_name, deployment_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'addon': addon_name}
         if options:
             data['options'] = options
@@ -493,17 +425,11 @@ class API():
             self.requires_token()
             resource = '/app/%s/deployment/%s/addon/' % \
                 (app_name, deployment_name)
-            request = Request(
-                token=self.get_token(),
-                cache=self.cache,
-                url=self.url)
+            request = Request(token=self.get_token())
             content = request.get(resource)
         else:
             resource = '/addon/'
-            request = Request(
-                token=self.get_token(),
-                cache=self.cache,
-                url=self.url)
+            request = Request(token=self.get_token())
             content = request.get(resource)
         return json.loads(content)
 
@@ -514,10 +440,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -526,10 +449,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name_current)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'addon': addon_name_to_update_to}
         content = request.put(resource, data)
         return json.loads(content)
@@ -541,10 +461,7 @@ class API():
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -554,10 +471,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/user/' % app_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -567,10 +481,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/user/' % app_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'email': email}
         content = request.post(resource, data)
         return json.loads(content)
@@ -581,10 +492,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/user/%s/' % (app_name, user_name)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -594,10 +502,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/'
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -620,10 +525,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/' % user_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -635,7 +537,7 @@ class API():
         """
         resource = '/user/%s/' % user_name
         if activation_code:
-            request = Request(cache=self.cache, url=self.url)
+            request = Request()
             data = {'activation_code': activation_code}
             request.put(resource, data)
         else:
@@ -649,10 +551,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/' % user_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -662,10 +561,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/key/' % user_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -675,10 +571,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/key/%s/' % (user_name, key_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -688,10 +581,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/key/' % user_name
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         data = {'key': public_key}
         content = request.post(resource, data)
         return json.loads(content)
@@ -704,10 +594,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/key/%s/' % (user_name, key_id)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         request.delete(resource)
         return True
 
@@ -727,7 +614,7 @@ class API():
         else:
             resource = '/app/%s/deployment/%s/log/%s/' % \
                 (app_name, deployment_name, log_type)
-        request = Request(token=self.get_token(), url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -737,7 +624,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/billing/%s/' % (userName, billingName)
-        request = Request(token=self.get_token(), url=self.url)
+        request = Request(token=self.get_token())
         content = request.post(resource, data)
         return json.loads(content)
 
@@ -747,10 +634,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/billing/%s/' % (userName, billingName)
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.put(resource, data)
         return json.loads(content)
 
@@ -760,10 +644,7 @@ class API():
         """
         self.requires_token()
         resource = '/user/%s/billing/' % userName
-        request = Request(
-            token=self.get_token(),
-            cache=self.cache,
-            url=self.url)
+        request = Request(token=self.get_token())
         content = request.get(resource)
         return json.loads(content)
 
@@ -896,10 +777,11 @@ class Request():
     password = None
     token = None
     version = None
+    cache = None
     url = None
+    disable_ssl_check = None
 
-    def __init__(self, email=None, password=None, token=None, cache=None,
-        version=__version__, url=API_URL, disable_ssl_check=DISABLE_SSL_CHECK):
+    def __init__(self, email=None, password=None, token=None):
         """
             When initializing a Request object decide if token auth or email,
             password auth should be used. The class handles both cases
@@ -908,10 +790,10 @@ class Request():
         self.email = email
         self.password = password
         self.token = token
-        self.version = version
-        self.cache = cache
-        self.url = url
-        self.disable_ssl_check = disable_ssl_check
+        self.version = VERSION
+        self.cache = CACHE
+        self.url = API_URL
+        self.disable_ssl_check = DISABLE_SSL_CHECK
 
     def post(self, resource, data=None):
         if not data: data = {}
@@ -987,8 +869,8 @@ class Request():
 
         #
         # Debug HTTP requests
-        if PYCCLIB_DEBUGGING:
-            httplib2.debuglevel = PYCCLIB_DEBUGGING_LEVEL
+        if DEBUG:
+            httplib2.debuglevel = DEBUG
             
         #
         # Finally we fire the actual request.
@@ -1003,18 +885,18 @@ class Request():
                     body=body,
                     headers=headers)
 
-                if PYCCLIB_DEBUGGING:
+                if DEBUG:
                     print 'DEBUG(resp)>>> {0}'.format(repr(resp))
                     print 'DEBUG(content)>>> {0}'.format(repr(content))
 
-            except AttributeError:
+            except (socket.error, AttributeError):
                 # if we could not reach the API we wait 1s and try again
                 time.sleep(1)
                 # if we tried for the fifth time we give up - and cry a little
                 if i == 5:
                     raise ConnectionException('Could not connect to API...')
             except httplib2.SSLHandshakeError:
-                raise ConnectionException('Certificate verify failed ...')
+                raise ConnectionException('Certificate verification failed ...')
             else:
                 break
         #
