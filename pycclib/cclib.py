@@ -60,6 +60,7 @@ __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
 
 API_URL = 'https://api.cloudcontrol.com'
 DISABLE_SSL_CHECK = False
+CA_CERTS = None
 CACHE = None
 # Set debug to 1 to enable debugging
 DEBUG = 0
@@ -779,6 +780,7 @@ class Request():
     cache = None
     url = None
     disable_ssl_check = None
+    ca_certs = None
 
     def __init__(self, email=None, password=None, token=None):
         """
@@ -793,6 +795,7 @@ class Request():
         self.cache = CACHE
         self.url = API_URL
         self.disable_ssl_check = DISABLE_SSL_CHECK
+        self.ca_certs = CA_CERTS
 
     def post(self, resource, data=None):
         if not data: data = {}
@@ -815,10 +818,16 @@ class Request():
         """
         if not headers: headers = {}
         url = urlparse(self.url + resource)
-        if self.cache is not None:
-            h = httplib2.Http(self.cache, disable_ssl_certificate_validation=self.disable_ssl_check)
-        else:
-            h = httplib2.Http(disable_ssl_certificate_validation=self.disable_ssl_check)
+        h = httplib2.Http()
+
+        if self.cache:
+            h.cache = self.cache
+
+        if self.disable_ssl_check:
+            h.disable_ssl_certificate_validation = self.disable_ssl_check
+
+        if self.ca_certs:
+            h.ca_certs = self.ca_certs
 
         #
         # If the current API instance has a valid token we add
@@ -888,11 +897,13 @@ class Request():
                     print 'DEBUG(resp)>>> {0}'.format(repr(resp))
                     print 'DEBUG(content)>>> {0}'.format(repr(content))
 
-            except (socket.error, AttributeError):
+            except (socket.error, AttributeError), e:
                 # if we could not reach the API we wait 1s and try again
                 time.sleep(1)
                 # if we tried for the fifth time we give up - and cry a little
                 if i == 5:
+                    if DEBUG:
+                        print 'DEBUG(exception)>>> {0}'.format(e)
                     raise ConnectionException('Could not connect to API...')
             except httplib2.SSLHandshakeError:
                 raise ConnectionException('Certificate verification failed ...')
