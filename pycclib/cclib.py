@@ -685,7 +685,18 @@ class BadRequestError(Exception):
     #noinspection PyMissingConstructor
     def __init__(self, value):
         try:
-            self.msgs = json.loads(value[12:])
+            if value.startswith("Bad Request"):
+                self.msgs = json.loads(value[12:])
+            elif value.strip()[0] == '{' and value.strip()[-1] == '}':
+                d = json.loads(value)
+                if 'error' in d:
+                    self.msgs = d['error']
+                elif 'rc' in d:
+                    self.msgs = {"RC": d['rc']}
+                else:
+                    self.msgs = {"RC", "Bad Request"}
+            else:
+                self.msgs = {}
         except ValueError:
             self.msgs = {}
 
@@ -874,12 +885,13 @@ class Request():
         #
         headers['Content-Length'] = str(len(body))
         headers['Accept-Encoding'] = 'compress, gzip'
+        headers['Accept'] = "application/json"
 
         #
         # Debug HTTP requests
         if DEBUG:
             httplib2.debuglevel = DEBUG
-            
+
         #
         # Finally we fire the actual request.
         #
