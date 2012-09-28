@@ -297,7 +297,7 @@ class API():
         request.delete(resource)
         return True
 
-    def create_worker(self, app_name, deployment_name, command, params=None):
+    def create_worker(self, app_name, deployment_name, command, params=None, size=None):
         """
             Add an worker to a deployment.
         """
@@ -308,6 +308,8 @@ class API():
         data = {'command': command}
         if params:
             data['params'] = params
+        if size:
+            data['size'] = size
         content = request.post(resource, data)
         return json.loads(content)
 
