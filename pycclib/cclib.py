@@ -39,6 +39,7 @@ except ImportError:
 import time
 from urllib import urlencode
 import socket
+from decimal import Decimal
 
 import httplib2
 
@@ -606,11 +607,16 @@ class API():
 
             log_type choices are 'access' or 'error'
 
-            last_time is optional format is a Python time struct
+            last_time is optional format is a Python datetime object or a time struct
         """
         self.requires_token()
         if last_time:
-            timestamp = calendar.timegm(last_time)
+            try:
+                last_time_tuple = last_time.timetuple()
+                timestamp = Decimal('{}.{}'.format(int(time.mktime(last_time_tuple)), last_time.microsecond))
+            except TypeError:
+                timestamp = calendar.timegm(last_time)
+
             resource = '/app/%s/deployment/%s/log/%s/?timestamp=%s' % \
                 (app_name, deployment_name, log_type, timestamp)
         else:
@@ -881,7 +887,7 @@ class Request():
         # Debug HTTP requests
         if DEBUG:
             httplib2.debuglevel = DEBUG
-            
+
         #
         # Finally we fire the actual request.
         #
