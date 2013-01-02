@@ -628,41 +628,19 @@ class API():
         content = request.get(resource)
         return json.loads(content)
 
-###
-#
-# EXCEPTIONS
-#
-###
-
 
 class ConnectionException(Exception):
-    """
-        We raise this exception if the API was unreachable.
-    """
     pass
 
 
 class TokenRequiredError(Exception):
-    """
-        We raise this exception if a method requires a token but self._token
-        is none.
-
-        Use the create_token() method to get a new token.
-    """
-    #noinspection PyMethodOverriding
     def __unicode__(self):
         return 'No valid token. Use create_token(email, password) to get one'
 
 
 class BadRequestError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 400
-        BAD REQUEST.
-    """
-
     msgs = {}
 
-    #noinspection PyMissingConstructor
     def __init__(self, value):
         try:
             self.msgs = json.loads(value[12:])
@@ -677,73 +655,35 @@ class BadRequestError(Exception):
 
 
 class UnauthorizedError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 401
-        UNAUTHORIZED.
-    """
     pass
 
 
 class ForbiddenError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 403
-        FORBIDDEN.
-    """
     pass
 
 
 class NotFoundError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 404
-        NOT FOUND.
-    """
     pass
 
 
 class ConflictDuplicateError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 409
-        DUPLICATE ENTRY.
-    """
     pass
 
 
 class GoneError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 410
-        GONE.
-    """
     pass
 
 
 class InternalServerError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 500
-        INTERNAL SERVER ERROR.
-    """
     pass
 
 
 class NotImplementedError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 501
-        NOT IMPLEMENTED.
-    """
     pass
 
 
 class ThrottledError(Exception):
-    """
-        We raise this exception whenever the API answers with HTTP STATUS 503
-        THROTTLED.
-    """
     pass
-
-###
-#
-# Request Class using httplib2 to fire HTTP requests
-#
-###
 
 
 class Request():
