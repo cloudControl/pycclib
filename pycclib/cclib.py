@@ -776,14 +776,12 @@ class Request():
         self.ca_certs = CA_CERTS
 
     def post(self, resource, data=None):
-        if not data: data = {}
         return self.request(resource, method='POST', data=data)
 
     def get(self, resource):
         return self.request(resource)
 
     def put(self, resource, data=None):
-        if not data: data = {}
         return self.request(resource, method='PUT', data=data)
 
     def delete(self, resource):
