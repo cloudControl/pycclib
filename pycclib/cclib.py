@@ -72,53 +72,28 @@ class API():
         return json.loads(content)
 
     def requires_token(self):
-        """
-            requires_token checks that methods that require
-            a token can't be called without a token.
-
-            If check_token doesn't return True a TokenRequiredError exception
-            is raised telling the caller to use the create_token method to get
-            a valid token.
-        """
         if not self.check_token():
             raise TokenRequiredError
 
     def create_token(self, email, password):
-        """
-            Queries the API for a new Token and saves it as self._token.
-        """
-        request = Request(
-            email=email,
-            password=password)
+        request = Request(email=email, password=password)
         content = request.post('/token/')
         self.set_token(json.loads(content))
         return True
 
     def check_token(self):
-        """
-            This method checks if there's a token.
-        """
         token = self.get_token()
         if token:
             return True
         return False
 
     def set_token(self, token):
-        """
-            We use set_token to set the token.
-        """
         self._token = token
 
     def get_token(self):
-        """
-            We use get_token to get the token.
-        """
         return self._token
 
     def create_app(self, app_name, type, repository_type):
-        """
-            Create a new application and return it.
-        """
         self.requires_token()
         resource = '/app/'
         data = {
@@ -130,9 +105,6 @@ class API():
         return json.loads(content)
 
     def read_apps(self):
-        """
-            Returns a list of applications.
-        """
         self.requires_token()
         resource = '/app/'
         request = Request(token=self.get_token())
@@ -140,9 +112,6 @@ class API():
         return json.loads(content)
 
     def read_app(self, app_name):
-        """
-            Returns all application details.
-        """
         self.requires_token()
         resource = '/app/%s/' % app_name
         request = Request(token=self.get_token())
@@ -150,9 +119,6 @@ class API():
         return json.loads(content)
 
     def delete_app(self, app_name):
-        """
-            Delete a application.
-        """
         self.requires_token()
         resource = '/app/%s/' % app_name
         request = Request(token=self.get_token())
@@ -160,11 +126,6 @@ class API():
         return True
 
     def create_deployment(self, app_name, deployment_name='', stack=None):
-        """
-            Create a new deployment.
-
-            deployment_name is optional
-        """
         self.requires_token()
         resource = '/app/%s/deployment/' % app_name
         request = Request(token=self.get_token())
@@ -177,9 +138,6 @@ class API():
         return json.loads(content)
 
     def read_deployment(self, app_name, deployment_name):
-        """
-            Returns all deployment details.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
@@ -198,7 +156,7 @@ class API():
             Updates a deployment.
 
             Use this to deploy new versions. If no version is provided the
-            last version is deployed.
+            last pushed version is deployed.
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
@@ -216,9 +174,6 @@ class API():
         return json.loads(content)
 
     def delete_deployment(self, app_name, deployment_name):
-        """
-            Delete a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
@@ -226,9 +181,6 @@ class API():
         return True
 
     def create_alias(self, app_name, alias_name, deployment_name):
-        """
-            Add an alias to a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
@@ -237,13 +189,6 @@ class API():
         return json.loads(content)
 
     def read_aliases(self, app_name=None, deployment_name=None):
-        """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
-        """
         content = None
         if app_name and deployment_name:
             self.requires_token()
@@ -254,9 +199,6 @@ class API():
         return json.loads(content)
 
     def read_alias(self, app_name, alias_name, deployment_name):
-        """
-            Get all alias details.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/%s/' % \
             (app_name, deployment_name, alias_name)
@@ -265,9 +207,6 @@ class API():
         return json.loads(content)
 
     def delete_alias(self, app_name, alias_name, deployment_name):
-        """
-            Remove an alias from a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/alias/%s/' % \
             (app_name, deployment_name, alias_name)
@@ -276,9 +215,6 @@ class API():
         return True
 
     def create_worker(self, app_name, deployment_name, command, params=None, size=None):
-        """
-            Add an worker to a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/' % \
             (app_name, deployment_name)
@@ -292,13 +228,6 @@ class API():
         return json.loads(content)
 
     def read_workers(self, app_name=None, deployment_name=None):
-        """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
-        """
         content = None
         if app_name and deployment_name:
             self.requires_token()
@@ -309,9 +238,6 @@ class API():
         return json.loads(content)
 
     def read_worker(self, app_name, deployment_name, wrk_id):
-        """
-            Get all worker details.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/%s/' % \
             (app_name, deployment_name, wrk_id)
@@ -320,9 +246,6 @@ class API():
         return json.loads(content)
 
     def delete_worker(self, app_name, deployment_name, wrk_id):
-        """
-            Remove an worker from a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/worker/%s/' % \
             (app_name, deployment_name, wrk_id)
@@ -331,9 +254,6 @@ class API():
         return True
 
     def create_cronjob(self, app_name, deployment_name, url):
-        """
-            Add an worker to a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
@@ -342,13 +262,6 @@ class API():
         return json.loads(content)
 
     def read_cronjobs(self, app_name=None, deployment_name=None):
-        """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
-        """
         content = None
         if app_name and deployment_name:
             self.requires_token()
@@ -359,9 +272,6 @@ class API():
         return json.loads(content)
 
     def read_cronjob(self, app_name, deployment_name, job_id):
-        """
-            Get all worker details.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/%s/' % \
             (app_name, deployment_name, job_id)
@@ -370,9 +280,6 @@ class API():
         return json.loads(content)
 
     def delete_cronjob(self, app_name, deployment_name, job_id):
-        """
-            Remove an worker from a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/cron/%s/' % \
             (app_name, deployment_name, job_id)
@@ -381,9 +288,6 @@ class API():
         return True
 
     def create_addon(self, app_name, deployment_name, addon_name, options=None):
-        """
-            Add an alias to a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
@@ -397,9 +301,9 @@ class API():
         """
             Get a list of addons.
 
-            If app_name and deployment_name are None it will return a list
+            If app_name or deployment_name are None it will return a list
             of available addons. Otherwise a list of addons related to that
-            deployment.
+            deployment is returned.
         """
         if app_name and deployment_name:
             self.requires_token()
@@ -414,9 +318,6 @@ class API():
         return json.loads(content)
 
     def read_addon(self, app_name, deployment_name, addon_name):
-        """
-            Get all addon details.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name)
@@ -424,8 +325,7 @@ class API():
         content = request.get(resource)
         return json.loads(content)
 
-    def update_addon(self, app_name, deployment_name, addon_name_current,
-        addon_name_to_update_to):
+    def update_addon(self, app_name, deployment_name, addon_name_current, addon_name_to_update_to):
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name_current)
@@ -435,9 +335,6 @@ class API():
         return json.loads(content)
 
     def delete_addon(self, app_name, deployment_name, addon_name):
-        """
-            Remove an addon from a deployment.
-        """
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name)
@@ -446,9 +343,7 @@ class API():
         return True
 
     def read_app_users(self, app_name):
-        """
-            Get a list of app users.
-        """
+        """Get the list of users associated with the app."""
         self.requires_token()
         resource = '/app/%s/user/' % app_name
         request = Request(token=self.get_token())
@@ -456,9 +351,7 @@ class API():
         return json.loads(content)
 
     def create_app_user(self, app_name, email):
-        """
-            Add a user to an application.
-        """
+        """Add a user to an application."""
         self.requires_token()
         resource = '/app/%s/user/' % app_name
         request = Request(token=self.get_token())
@@ -467,9 +360,7 @@ class API():
         return json.loads(content)
 
     def delete_app_user(self, app_name, user_name):
-        """
-           Remove a user from an application.
-        """
+        """Remove a user from an application."""
         self.requires_token()
         resource = '/app/%s/user/%s/' % (app_name, user_name)
         request = Request(token=self.get_token())
@@ -477,9 +368,6 @@ class API():
         return True
 
     def read_users(self):
-        """
-            Get a list of users. Usually just your own.
-        """
         self.requires_token()
         resource = '/user/'
         request = Request(token=self.get_token())
@@ -487,9 +375,6 @@ class API():
         return json.loads(content)
 
     def create_user(self, name, email, password):
-        """
-            Create a new user.
-        """
         resource = '/user/'
         request = Request()
         data = {
@@ -500,9 +385,6 @@ class API():
         return json.loads(content)
 
     def read_user(self, user_name):
-        """
-            Get user by user_name.
-        """
         self.requires_token()
         resource = '/user/%s/' % user_name
         request = Request(token=self.get_token())
@@ -510,11 +392,7 @@ class API():
         return json.loads(content)
 
     def update_user(self, user_name, activation_code=None):
-        """
-            Update user by user_name.
-
-            Use this for activation after registration.
-        """
+        """Activate a user account."""
         resource = '/user/%s/' % user_name
         if activation_code:
             request = Request()
@@ -526,9 +404,6 @@ class API():
         return True
 
     def delete_user(self, user_name):
-        """
-            Delete user by user_name.
-        """
         self.requires_token()
         resource = '/user/%s/' % user_name
         request = Request(token=self.get_token())
@@ -536,9 +411,6 @@ class API():
         return True
 
     def read_user_keys(self, user_name):
-        """
-            Get a list of keys belonging to user selected by user_name.
-        """
         self.requires_token()
         resource = '/user/%s/key/' % user_name
         request = Request(token=self.get_token())
@@ -546,9 +418,6 @@ class API():
         return json.loads(content)
 
     def read_user_key(self, user_name, key_id):
-        """
-            Get a key by user_name and key_id.
-        """
         self.requires_token()
         resource = '/user/%s/key/%s/' % (user_name, key_id)
         request = Request(token=self.get_token())
@@ -556,9 +425,6 @@ class API():
         return json.loads(content)
 
     def create_user_key(self, user_name, public_key):
-        """
-            Add a key to user by user_name.
-        """
         self.requires_token()
         resource = '/user/%s/key/' % user_name
         request = Request(token=self.get_token())
@@ -568,7 +434,7 @@ class API():
 
     def delete_user_key(self, user_name, key_id):
         """
-            Remove a key from user by user_name.
+            Remove a key from a user.
 
             Requires key_id that can be requested using read_user_keys()
         """
@@ -580,11 +446,11 @@ class API():
 
     def read_log(self, app_name, deployment_name, log_type, last_time=None):
         """
-            Get a deployment's log by log_type.
+            Return deployment log of specified type.
 
-            log_type choices are 'access' or 'error'
-
-            last_time is optional format is a Python time struct
+            Args:
+              log_type: 'access', 'error', 'deploy' or 'worker'
+              last_time (optional): only return log lines newer than this python time struct
         """
         self.requires_token()
         if last_time:
@@ -599,9 +465,6 @@ class API():
         return json.loads(content)
 
     def create_billing_account(self, userName, billingName, data):
-        """
-        creates a billing account.
-        """
         self.requires_token()
         resource = '/user/%s/billing/%s/' % (userName, billingName)
         request = Request(token=self.get_token())
@@ -609,9 +472,6 @@ class API():
         return json.loads(content)
 
     def update_billing_account(self, userName, billingName, data):
-        """
-        updates a billing account
-        """
         self.requires_token()
         resource = '/user/%s/billing/%s/' % (userName, billingName)
         request = Request(token=self.get_token())
@@ -619,9 +479,6 @@ class API():
         return json.loads(content)
 
     def get_billing_accounts(self, userName):
-        """
-        return all users billling accounts
-        """
         self.requires_token()
         resource = '/user/%s/billing/' % userName
         request = Request(token=self.get_token())
