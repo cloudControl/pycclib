@@ -634,8 +634,11 @@ class ConnectionException(Exception):
 
 
 class TokenRequiredError(Exception):
+    def __str__(self):
+        return unicode(self).encode()
+
     def __unicode__(self):
-        return 'No valid token. Use create_token(email, password) to get one'
+        return u'No valid token. Use create_token(email, password) to get one'
 
 
 class BadRequestError(Exception):
