@@ -797,7 +797,9 @@ class Request():
             we use the excellent httplib2 for all the heavy HTTP protocol
             lifting.
         """
-        if not headers: headers = {}
+        method = method.upper()
+        if not headers:
+            headers = {}
         url = urlparse(self.url + resource)
         h = httplib2.Http()
 
@@ -848,7 +850,7 @@ class Request():
         # The API expects PUT or POST data to be x-www-form-urlencoded so we
         # also set the correct Content-Type header.
         #
-        if method.upper() == 'PUT' or 'POST':
+        if method in ('PUT', 'POST'):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         #
         # We also set the Content-Length and Accept-Encoding headers.
@@ -860,7 +862,7 @@ class Request():
         # Debug HTTP requests
         if DEBUG:
             httplib2.debuglevel = DEBUG
-            
+
         #
         # Finally we fire the actual request.
         #
@@ -870,7 +872,7 @@ class Request():
             try:
                 resp, content = h.request(
                     url.geturl(),
-                    method.upper(),
+                    method,
                     body=body,
                     headers=headers)
 
