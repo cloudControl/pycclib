@@ -189,8 +189,14 @@ class API():
         content = request.get(resource)
         return json.loads(content)
 
-    def update_deployment(self, app_name, version=-1, deployment_name='',
-        min_boxes=None, max_boxes=None, billing_account=None, stack=None):
+    def update_deployment(self,
+                          app_name,
+                          version=-1,
+                          deployment_name='default',
+                          min_boxes=None,
+                          max_boxes=None,
+                          billing_account=None,
+                          stack=None):
         """
             Updates a deployment.
 
@@ -198,8 +204,6 @@ class API():
             last version is deployed.
         """
         self.requires_token()
-        if deployment_name == '':
-            deployment_name = 'default'
         resource = '/app/%s/deployment/%s/' % (app_name, deployment_name)
         request = Request(token=self.get_token())
         data = {'version': version}
