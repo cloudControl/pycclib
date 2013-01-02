@@ -61,7 +61,6 @@ class API():
     """
 
     _token = None
-    cache = None
     url = None
 
     def __init__(self, token=None):
@@ -758,7 +757,6 @@ class Request():
     password = None
     token = None
     version = None
-    cache = None
     url = None
     disable_ssl_check = None
     ca_certs = None
@@ -773,7 +771,6 @@ class Request():
         self.password = password
         self.token = token
         self.version = VERSION
-        self.cache = None
         self.url = API_URL
         self.disable_ssl_check = DISABLE_SSL_CHECK
         self.ca_certs = CA_CERTS
@@ -802,9 +799,6 @@ class Request():
             headers = {}
         url = urlparse(self.url + resource)
         h = httplib2.Http()
-
-        if self.cache:
-            h.cache = self.cache
 
         if self.disable_ssl_check:
             h.disable_ssl_certificate_validation = self.disable_ssl_check
