@@ -841,56 +841,14 @@ class Request():
         #
         if method in ('PUT', 'POST'):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        #
-        # We also set the Content-Length and Accept-Encoding headers.
-        #
-        headers['Content-Length'] = str(len(body))
-        headers['Accept-Encoding'] = 'compress, gzip'
-
-        #
-        # Debug HTTP requests
-        if DEBUG:
-            httplib2.debuglevel = DEBUG
 
         #
         # Finally we fire the actual request.
         #
-        resp = None
-        content = None
-        for i in range(1, 6):
-            try:
-                resp, content = h.request(
-                    url.geturl(),
-                    method,
-                    body=body,
-                    headers=headers)
-
-                if DEBUG:
-                    print 'DEBUG(resp)>>> {0}'.format(repr(resp))
-                    print 'DEBUG(content)>>> {0}'.format(repr(content))
-
-            except (socket.error, AttributeError), e:
-                # if we could not reach the API we wait 1s and try again
-                time.sleep(1)
-                # if we tried for the fifth time we give up - and cry a little
-                if i == 5:
-                    if DEBUG:
-                        print 'DEBUG(exception)>>> {0}'.format(e)
-                    raise ConnectionException('Could not connect to API...')
-            except httplib2.SSLHandshakeError:
-                raise ConnectionException('Certificate verification failed ...')
-            else:
-                break
-        #
-        # And handle the possible responses according to their HTTP STATUS
-        # CODES.
-        #
-        # 200 OK, 201 CREATED and 204 DELETED result in returning the actual
-        # response.
-        #
-        # All non success STATUS CODES raise an exception containing
-        # the API error message.
-        #
+        try:
+            resp, content = h.request(url.geturl(), method, body=body, headers=headers)
+        except httplib2.SSLHandshakeError:
+            raise ConnectionException('Certificate verification failed ...')
 
         if resp.status in [200, 201, 204]:
             return content.decode('UTF8')
