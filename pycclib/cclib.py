@@ -37,7 +37,6 @@ __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
 API_URL = 'https://api.cloudcontrol.com'
 DISABLE_SSL_CHECK = False
 CA_CERTS = None
-CACHE = None
 # Set debug to 1 to enable debugging
 DEBUG = 0
 
@@ -774,7 +773,7 @@ class Request():
         self.password = password
         self.token = token
         self.version = VERSION
-        self.cache = CACHE
+        self.cache = None
         self.url = API_URL
         self.disable_ssl_check = DISABLE_SSL_CHECK
         self.ca_certs = CA_CERTS
