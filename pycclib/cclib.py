@@ -627,10 +627,7 @@ class Request():
         #
         headers['User-Agent'] = 'pycclib/%s' % self.version
         headers['Accept-Charset'] = 'utf-8'
-        #
-        # The API expects PUT or POST data to be x-www-form-urlencoded so we
-        # also set the correct Content-Type header.
-        #
+
         if method in ('PUT', 'POST'):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
