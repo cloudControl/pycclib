@@ -822,10 +822,7 @@ class Request():
         # The API expects the body to be url-encoded. If data was passed to
         # the request method we therefore use url-encode from urllib.
         #
-        if data is None:
-            body = ''
-        else:
-            body = urlencode(data)
+        body = urlencode(data) if data else ''
 
         #
         # We set the Host Header for MacOSX 10.5,
