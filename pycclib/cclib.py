@@ -835,6 +835,7 @@ class Request():
         # the wild.
         #
         headers['User-Agent'] = 'pycclib/%s' % self.version
+        headers['Accept-Charset'] = 'utf-8'
         #
         # The API expects PUT or POST data to be x-www-form-urlencoded so we
         # also set the correct Content-Type header.
@@ -850,26 +851,18 @@ class Request():
         except httplib2.SSLHandshakeError:
             raise ConnectionException('Certificate verification failed ...')
 
+        content = content.decode('utf-8')
         if resp.status in [200, 201, 204]:
-            return content.decode('UTF8')
-        elif resp.status == 400:
-            raise BadRequestError(content.decode('UTF8'))
-        elif resp.status == 401:
-            raise UnauthorizedError(content.decode('UTF8'))
-        elif resp.status == 403:
-            raise ForbiddenError(content.decode('UTF8'))
-        elif resp.status == 404:
-            raise NotFoundError()
-        elif resp.status == 409:
-            raise ConflictDuplicateError(content.decode('UTF8'))
-        elif resp.status == 410:
-            raise GoneError(content.decode('UTF8'))
-        #
-        # 500 INTERNAL SERVER ERRORs normally shouldn't happen...
-        #
-        elif resp.status == 500:
-            raise InternalServerError(content.decode('UTF8'))
-        elif resp.status == 501:
-            raise NotImplementedError(content.decode('UTF8'))
-        elif resp.status == 503:
-            raise ThrottledError(content.decode('UTF8'))
+            return content
+        exc_for_code = {
+            400: BadRequestError,
+            401: UnauthorizedError,
+            403: ForbiddenError,
+            404: NotFoundError,
+            409: ConflictDuplicateError,
+            410: GoneError,
+            500: InternalServerError,
+            501: NotImplementedError,
+            503: ThrottledError,
+        }
+        raise exc_for_code.get(resp.status, Exception)(content)
