@@ -825,11 +825,6 @@ class Request():
         body = urlencode(data) if data else ''
 
         #
-        # We set the Host Header for MacOSX 10.5,
-        # to circumvent the NotFoundError
-        #
-        headers['Host'] = url.hostname
-        #
         # We set the User-Agent Header to pycclib and the local version.
         # This enables basic statistics about still used pycclib versions in
         # the wild.
