@@ -1,10 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-pycclib
-
-library for accessing the cloudControl API using Python
-
-Copyright 2010 cloudControl UG (haftungsbeschraenkt)
+Copyright 2010-2012 cloudControl UG (haftungsbeschraenkt)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,15 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-### basic usage example
-# from pycclib.cclib import *
-#
-# api = API()
-# api.create_token(email='name@example.com', password='secretpassword')
-#
-# apps = api.read_apps()
-
 """
 from urlparse import urlparse
 import calendar
