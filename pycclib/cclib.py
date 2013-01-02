@@ -13,8 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from urlparse import urlparse
+import time
 import calendar
+import socket
+import httplib2
+from urllib import urlencode
+from urlparse import urlparse
 # python versions below 2.6 do not have json included we need simplejson then
 try:
     import json
@@ -22,11 +26,6 @@ except ImportError:
     #noinspection PyUnresolvedReferences
     import simplejson as json
 
-import time
-from urllib import urlencode
-import socket
-
-import httplib2
 
 from pycclib.version import __version__ as VERSION
 
