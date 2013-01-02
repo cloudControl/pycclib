@@ -639,8 +639,6 @@ class TokenRequiredError(Exception):
 
 
 class BadRequestError(Exception):
-    msgs = {}
-
     def __init__(self, value):
         try:
             self.msgs = json.loads(value[12:])
@@ -648,10 +646,10 @@ class BadRequestError(Exception):
             self.msgs = {}
 
     def __str__(self):
-        msg = ''
-        for key in self.msgs:
-            msg = msg + key + ': ' + self.msgs[key] + '\n'
-        return msg
+        return unicode(self).encode()
+
+    def __unicode__(self):
+        return u''.join(u'%s: %s\n' for item in self.msgs.iteritems)
 
 
 class UnauthorizedError(Exception):
