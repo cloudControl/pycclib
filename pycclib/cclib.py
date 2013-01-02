@@ -42,6 +42,7 @@ import socket
 
 import httplib2
 
+from pycclib.version import __version__ as VERSION
 
 __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
            'TokenRequiredError', 'BadRequestError', 'ForbiddenError',
@@ -54,7 +55,7 @@ CA_CERTS = None
 CACHE = None
 # Set debug to 1 to enable debugging
 DEBUG = 0
-VERSION = __version__
+
 
 class API():
     """
