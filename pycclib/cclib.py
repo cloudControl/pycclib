@@ -91,13 +91,13 @@ class API():
     def get_token(self):
         return self._token
 
-    def create_app(self, app_name, type, repository_type):
+    def create_app(self, app_name, type_, repository_type):
         self.requires_token()
         resource = '/app/'
         data = {
-                'name': app_name,
-                'type': type,
-                'repository_type': repository_type}
+            'name': app_name,
+            'type': type_,
+            'repository_type': repository_type}
         request = Request(token=self.get_token())
         content = request.post(resource, data)
         return json.loads(content)
