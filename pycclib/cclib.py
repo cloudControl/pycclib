@@ -42,16 +42,6 @@ import socket
 
 import httplib2
 
-from pycclib.version import __version__
-# We avoid the potential risk of somebody relying on the deprecated apiurl.py
-# by raising an exception to make sure nobody talks to the wrong API due to
-# our backwards incompatible change.
-try:
-    from pycclib import apiurl
-except ImportError:
-    pass
-else:
-    raise Exception('Use of apiurl.py is deprecated. Set pycclib.API_URL instead.')
 
 __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
            'TokenRequiredError', 'BadRequestError', 'ForbiddenError',
