@@ -507,7 +507,7 @@ class BadRequestError(Exception):
         return unicode(self).encode()
 
     def __unicode__(self):
-        return u''.join(u'%s: %s\n' for item in self.msgs.iteritems()) or u'Bad Request'
+        return u''.join(u'%s: %s\n' % (label, msg) for label, msg in self.msgs.iteritems()) or u'Bad Request'
 
 
 class UnauthorizedError(Exception):
