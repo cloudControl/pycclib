@@ -33,7 +33,6 @@ import calendar
 try:
     import json
 except ImportError:
-    #noinspection PyUnresolvedReferences
     import simplejson as json
 
 import time
@@ -66,6 +65,7 @@ CACHE = None
 # Set debug to 1 to enable debugging
 DEBUG = 0
 VERSION = __version__
+
 
 class API():
     """
@@ -148,8 +148,7 @@ class API():
         """
         self.requires_token()
         resource = '/app/'
-        data = {
-                'name': app_name,
+        data = {'name': app_name,
                 'type': type,
                 'repository_type': repository_type}
         request = Request(token=self.get_token())
@@ -214,7 +213,8 @@ class API():
         return json.loads(content)
 
     def update_deployment(self, app_name, version=-1, deployment_name='',
-        min_boxes=None, max_boxes=None, billing_account=None, stack=None):
+                          min_boxes=None, max_boxes=None, billing_account=None,
+                          stack=None):
         """
             Updates a deployment.
 
@@ -448,7 +448,7 @@ class API():
         return json.loads(content)
 
     def update_addon(self, app_name, deployment_name, addon_name_current,
-        addon_name_to_update_to):
+                     addon_name_to_update_to):
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name_current)
@@ -806,14 +806,18 @@ class Request():
         self.ca_certs = CA_CERTS
 
     def post(self, resource, data=None):
-        if not data: data = {}
+        if not data:
+            data = {}
+
         return self.request(resource, method='POST', data=data)
 
     def get(self, resource):
         return self.request(resource)
 
     def put(self, resource, data=None):
-        if not data: data = {}
+        if not data:
+            data = {}
+
         return self.request(resource, method='PUT', data=data)
 
     def delete(self, resource):
@@ -824,7 +828,9 @@ class Request():
             we use the excellent httplib2 for all the heavy HTTP protocol
             lifting.
         """
-        if not headers: headers = {}
+        if not headers:
+            headers = {}
+
         url = urlparse(self.url + resource)
         h = httplib2.Http()
 
