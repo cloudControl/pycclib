@@ -212,6 +212,16 @@ class API():
         content = request.get(resource)
         return json.loads(content)
 
+    def read_deployment_users(self, app_name, deployment_name):
+        """
+            get a list of the deployment-users
+        """
+        self.requires_token()
+        resource = '/app/%s/deployment/%s/user/' % (app_name, deployment_name)
+        request = Request(token=self.get_token())
+        content = request.get(resource)
+        return json.loads(content)
+
     def update_deployment(self, app_name, version=-1, deployment_name='',
                           min_boxes=None, max_boxes=None, billing_account=None,
                           stack=None):
@@ -478,14 +488,18 @@ class API():
         content = request.get(resource)
         return json.loads(content)
 
-    def create_app_user(self, app_name, email):
+    def create_app_user(self, app_name, email, role=None):
         """
             Add a user to an application.
         """
         self.requires_token()
         resource = '/app/%s/user/' % app_name
         request = Request(token=self.get_token())
+
         data = {'email': email}
+        if role:
+            data['role'] = role
+
         content = request.post(resource, data)
         return json.loads(content)
 
@@ -495,6 +509,31 @@ class API():
         """
         self.requires_token()
         resource = '/app/%s/user/%s/' % (app_name, user_name)
+        request = Request(token=self.get_token())
+        request.delete(resource)
+        return True
+
+    def create_deployment_user(self, app_name, deployment_name, email, role=None):
+        """
+            Add a user to an application.
+        """
+        self.requires_token()
+        resource = '/app/%s/deployment/%s/user/' % (app_name, deployment_name)
+        request = Request(token=self.get_token())
+
+        data = {'email': email}
+        if role:
+            data['role'] = role
+
+        content = request.post(resource, data)
+        return json.loads(content)
+
+    def delete_deployment_user(self, app_name, deployment_name, user_name):
+        """
+           Remove a user from an application.
+        """
+        self.requires_token()
+        resource = '/app/%s/deployment/%s/user/%s/' % (app_name, deployment_name, user_name)
         request = Request(token=self.get_token())
         request.delete(resource)
         return True
