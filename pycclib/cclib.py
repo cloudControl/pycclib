@@ -732,7 +732,10 @@ class BadRequestError(Exception):
     #noinspection PyMissingConstructor
     def __init__(self, value):
         try:
-            self.msgs = json.loads(value[12:])
+            try:
+                self.msgs = json.loads(value)
+            except ValueError:
+                self.msgs = json.loads(value[12:])
         except ValueError:
             self.msgs = {}
 
