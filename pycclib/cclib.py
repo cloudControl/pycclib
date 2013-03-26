@@ -142,7 +142,7 @@ class API():
         """
         return self._token
 
-    def create_app(self, app_name, type, repository_type):
+    def create_app(self, app_name, type, repository_type, buildpack_url=None):
         """
             Create a new application and return it.
         """
@@ -151,6 +151,9 @@ class API():
         data = {'name': app_name,
                 'type': type,
                 'repository_type': repository_type}
+        if buildpack_url:
+                data['buildpack_url'] = buildpack_url
+
         request = Request(token=self.get_token())
         content = request.post(resource, data)
         return json.loads(content)
