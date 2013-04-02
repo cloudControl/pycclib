@@ -656,7 +656,7 @@ class API():
             try:
                 last_time_tuple = last_time.timetuple()
                 timestamp = Decimal('{}.{}'.format(int(time.mktime(last_time_tuple)), last_time.microsecond))
-            except TypeError:
+            except (TypeError, AttributeError):
                 timestamp = calendar.timegm(last_time)
 
             resource = '/app/%s/deployment/%s/log/%s/?timestamp=%s' % \
