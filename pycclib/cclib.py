@@ -812,6 +812,14 @@ class ThrottledError(Exception):
     """
     pass
 
+
+class UnprocessableEntityError(Exception):
+    """
+        We raise this exception whenever the API answers with HTTP STATUS 422
+        UNPROCESSABLE ENTITY.
+    """
+    pass
+
 ###
 #
 # Request Class using httplib2 to fire HTTP requests
@@ -993,6 +1001,8 @@ class Request():
             raise ConflictDuplicateError(content.decode('UTF8'))
         elif resp.status == 410:
             raise GoneError(content.decode('UTF8'))
+        elif resp.status == 422:
+            raise UnprocessableEntityError(content.decode('UTF8'))
         #
         # 500 INTERNAL SERVER ERRORs normally shouldn't happen...
         #
