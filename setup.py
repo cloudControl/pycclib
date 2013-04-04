@@ -5,7 +5,7 @@ import os
 import sys
 from pycclib.version import __version__
 
-DOWNLOAD_URL = 'https://github.com/downloads/cloudControl/pycclib/pycclib-{0}.tar.gz'.format(__version__)
+DOWNLOAD_URL = 'https://s3-eu-west-1.amazonaws.com/pycclib/pycclib-{0}.tar.gz'.format(__version__)
 
 execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
 
