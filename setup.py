@@ -5,8 +5,6 @@ import os
 import sys
 from pycclib.version import __version__
 
-DOWNLOAD_URL = 'https://s3-eu-west-1.amazonaws.com/pycclib/pycclib-{0}.tar.gz'.format(__version__)
-
 execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
 
 try:
@@ -30,7 +28,6 @@ setup(
     author='cloudControl Team',
     author_email='info@cloudcontrol.de',
     url='https://www.cloudcontrol.com',
-    download_url = DOWNLOAD_URL,
     license = 'Apache 2.0',
     classifiers=[
           'Development Status :: 5 - Production/Stable',
