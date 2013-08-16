@@ -655,7 +655,7 @@ class API():
         if last_time:
             try:
                 last_time_tuple = last_time.timetuple()
-                timestamp = Decimal('{}.{}'.format(int(time.mktime(last_time_tuple)), last_time.microsecond))
+                timestamp = Decimal('{0}.{1}'.format(int(time.mktime(last_time_tuple)), last_time.microsecond))
             except (TypeError, AttributeError):
                 timestamp = calendar.timegm(last_time)
 
