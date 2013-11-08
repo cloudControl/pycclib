@@ -461,12 +461,16 @@ class API():
         return json.loads(content)
 
     def update_addon(self, app_name, deployment_name, addon_name_current,
-                     addon_name_to_update_to):
+                     addon_name_to_update_to, settings=None, force=False):
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/%s/' % \
             (app_name, deployment_name, addon_name_current)
         request = Request(token=self.get_token())
         data = {'addon': addon_name_to_update_to}
+        if settings:
+            data['settings'] = settings
+        if force:
+            data['force'] = force
         content = request.put(resource, data)
         return json.loads(content)
 
