@@ -814,7 +814,23 @@ class ThrottledError(Exception):
         We raise this exception whenever the API answers with HTTP STATUS 503
         THROTTLED.
     """
-    pass
+    msgs = {}
+
+    #noinspection PyMissingConstructor
+    def __init__(self, value):
+        try:
+            try:
+                self.msgs = json.loads(value)
+            except ValueError:
+                self.msgs = json.loads(value[12:])
+        except ValueError:
+            self.msgs = {}
+
+    def __str__(self):
+        msg = ''
+        for key in self.msgs:
+            msg += "[ERROR] " + self.msgs[key] + '\n'
+        return msg[:-1]
 
 
 class UnprocessableEntityError(Exception):
