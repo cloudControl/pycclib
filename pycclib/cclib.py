@@ -818,18 +818,22 @@ class ThrottledError(Exception):
 
     #noinspection PyMissingConstructor
     def __init__(self, value):
+        self.prefix_with_error = True
         try:
             try:
                 self.msgs = json.loads(value)
             except ValueError:
                 self.msgs = json.loads(value[12:])
         except ValueError:
-            self.msgs = {}
+            self.msgs = {'error': value}
+            self.prefix_with_error = False
 
     def __str__(self):
         msg = ''
         for key in self.msgs:
-            msg += "[ERROR] " + self.msgs[key] + '\n'
+            if self.prefix_with_error:
+                msg += "[ERROR] "
+            msg += self.msgs[key] + '\n'
         return msg[:-1]
 
 
