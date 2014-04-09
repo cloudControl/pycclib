@@ -15,9 +15,9 @@ except ImportError:
     from setuptools import setup, find_packages
 
 if sys.version_info < (2, 6):
-   required = ['simplejson']
+   required = ['simplejson', 'certifi']
 else:
-   required = []
+   required = ['certifi']
 
 required.append('httplib2>=0.7.4')
 

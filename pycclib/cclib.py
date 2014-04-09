@@ -30,6 +30,7 @@ limitations under the License.
 from urlparse import urlparse
 import calendar
 # python versions below 2.6 do not have json included we need simplejson then
+
 try:
     import json
 except ImportError:
@@ -40,6 +41,7 @@ from urllib import urlencode
 import socket
 from decimal import Decimal
 
+import certifi
 import httplib2
 
 from pycclib.version import __version__
@@ -880,7 +882,7 @@ class Request():
         self.cache = CACHE
         self.url = API_URL
         self.disable_ssl_check = DISABLE_SSL_CHECK
-        self.ca_certs = CA_CERTS
+        self.ca_certs = CA_CERTS or certifi.where()
 
     def post(self, resource, data=None):
         if not data:
