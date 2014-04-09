@@ -44,5 +44,6 @@ setup(
           'Topic :: Software Development :: Libraries',
           ],
     packages=find_packages(),
-    install_requires=required
+    install_requires=required,
+    test_suite='tests',
 )
