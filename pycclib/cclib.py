@@ -92,10 +92,11 @@ class API():
     request = None
     cache = None
 
-    def __init__(self, token=None, url=None):
+    def __init__(self, token=None, url=None, token_source_url=None):
         self.set_token(token)
-
-        self.request = Request(token=token, url=url or API_URL)
+        api_url = url or API_URL
+        self.request = Request(token=token, url=api_url)
+        self.token_source_url = token_source_url or api_url
 
     def check_versions(self):
         version_request = Request(url=self.request.url)
@@ -121,7 +122,7 @@ class API():
         token_request = Request(
             email=email,
             password=password,
-            url=self.request.url)
+            url=self.token_source_url)
         content = token_request.post('/token/')
         token = json.loads(content)
 
