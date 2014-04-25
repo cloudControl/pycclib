@@ -19,3 +19,6 @@ To install `pycclib`:
     $ python setup.py install
     
 Dependencies should be automatically fetched by `easy_install`.
+
+## Run Tests
+    $ python setup.py test
