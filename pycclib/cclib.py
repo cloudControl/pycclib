@@ -27,6 +27,7 @@ limitations under the License.
 # apps = api.read_apps()
 
 """
+import base64
 from urlparse import urlparse
 import calendar
 # python versions below 2.6 do not have json included we need simplejson then
@@ -897,7 +898,8 @@ class Request():
             headers['Authorization'] = 'cc_auth_token="%s"' % \
                 (self.token['token'])
         elif self.email is not None and self.password is not None:
-            h.add_credentials(self.email, self.password)
+            headers['authorization'] = 'Basic ' + base64.b64encode("%s:%s" % (self.email, self.password)).strip()
+
         #
         # The API expects the body to be url-encoded. If data was passed to
         # the request method we therefore use url-encode from urllib.
