@@ -96,7 +96,7 @@ class API():
         self.set_token(token)
         api_url = url or API_URL
         self.request = Request(token=token, url=api_url)
-        self.token_source_url = token_source_url or api_url
+        self.token_source_url = token_source_url or api_url + '/token/'
 
     def check_versions(self):
         version_request = Request(url=self.request.url)
@@ -123,7 +123,7 @@ class API():
             email=email,
             password=password,
             url=self.token_source_url)
-        content = token_request.post('/token/')
+        content = token_request.post('')
         token = json.loads(content)
 
         self.set_token(token)
