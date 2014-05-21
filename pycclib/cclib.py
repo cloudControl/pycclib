@@ -61,7 +61,7 @@ __all__ = ['API', 'UnauthorizedError', 'ConnectionException',
            'ConflictDuplicateError', 'GoneError', 'InternalServerError',
            'NotImplementedError', 'ThrottledError']
 
-API_URL = 'https://api.cloudcontrol.com'
+API_URL = 'https://api.cloudcontrolled.com'
 DISABLE_SSL_CHECK = False
 CA_CERTS = None
 CACHE = None
