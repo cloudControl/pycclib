@@ -1,11 +1,3 @@
-*.iml
-*.pyc
-**/*.pyc
+build/
+dist/
 *.egg-info/
-.idea/
-.bzr/
-.bzrignore
-pycclib/apiurl.py
-*.swp
-.DS_Store
-.tox
