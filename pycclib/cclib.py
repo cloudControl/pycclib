@@ -325,11 +325,7 @@ class API():
 
     def read_workers(self, app_name=None, deployment_name=None):
         """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
+            Get a list of runnnig workers for a deployment.
         """
         content = None
         if app_name and deployment_name:
@@ -809,6 +805,11 @@ class UnprocessableEntityError(Exception):
     """
     pass
 
+
+class BadGatewayError(Exception): pass
+class GatewayTimeoutError(Exception): pass
+
+
 ###
 #
 # Request Class using httplib2 to fire HTTP requests
@@ -1000,5 +1001,11 @@ class Request():
             raise InternalServerError(content.decode('UTF8'))
         elif resp.status == 501:
             raise NotImplementedError(content.decode('UTF8'))
+        elif resp.status == 502:
+            raise BadGatewayError(content.decode('UTF-8'))
         elif resp.status == 503:
             raise ThrottledError(content.decode('UTF8'))
+        elif resp.status == 504:
+            raise GatewayTimeoutError(content.decode('UTF-8'))
+        else:
+            raise Exception('Received unexpected response status: %s' % str(resp.status))
