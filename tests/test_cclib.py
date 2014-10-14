@@ -10,3 +10,7 @@ class TestAPI(TestCase):
 
     def test_create_token_with_tokensouce_url(self):
         API(url='any.url', token_source_url='my.tokensource.url')
+
+    def test_encode_email(self):
+        self.assertEquals(True, API(encode_email=True).encode_email)
+        self.assertEquals(False, API(encode_email=False).encode_email)
