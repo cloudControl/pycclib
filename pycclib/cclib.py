@@ -30,6 +30,7 @@ limitations under the License.
 import base64
 from urlparse import urlparse
 import calendar
+import urllib
 # python versions below 2.6 do not have json included we need simplejson then
 
 try:
@@ -93,11 +94,12 @@ class API():
     request = None
     cache = None
 
-    def __init__(self, token=None, url=None, token_source_url=None):
+    def __init__(self, token=None, url=None, token_source_url=None, encode_email=False):
         self.set_token(token)
         api_url = url or API_URL
         self.request = Request(token=token, url=api_url)
         self.token_source_url = token_source_url or api_url + '/token/'
+        self.encode_email = encode_email
 
     def check_versions(self):
         version_request = Request(url=self.request.url)
@@ -123,7 +125,8 @@ class API():
         token_request = Request(
             email=email,
             password=password,
-            url=self.token_source_url)
+            url=self.token_source_url,
+            encode_email=self.encode_email)
         content = token_request.post('')
         token = json.loads(content)
 
@@ -806,8 +809,12 @@ class UnprocessableEntityError(Exception):
     pass
 
 
-class BadGatewayError(Exception): pass
-class GatewayTimeoutError(Exception): pass
+class BadGatewayError(Exception):
+    pass
+
+
+class GatewayTimeoutError(Exception):
+    pass
 
 
 ###
@@ -833,7 +840,7 @@ class Request():
     disable_ssl_check = None
     ca_certs = None
 
-    def __init__(self, email=None, password=None, token=None, url=API_URL):
+    def __init__(self, email=None, password=None, token=None, url=API_URL, encode_email=False):
         """
             When initializing a Request object decide if token auth or email,
             password auth should be used. The class handles both cases
@@ -847,6 +854,7 @@ class Request():
         self.url = url
         self.disable_ssl_check = DISABLE_SSL_CHECK
         self.ca_certs = CA_CERTS or certifi.where()
+        self.encode_email = encode_email
 
     def post(self, resource, data=None):
         if not data:
@@ -899,6 +907,8 @@ class Request():
             headers['Authorization'] = 'cc_auth_token="%s"' % \
                 (self.token['token'])
         elif self.email is not None and self.password is not None:
+            if self.encode_email:
+                self.email = urllib.quote(self.email)
             headers['authorization'] = 'Basic ' + base64.b64encode("%s:%s" % (self.email, self.password)).strip()
 
         #

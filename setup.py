@@ -5,7 +5,7 @@ import os
 import sys
 from pycclib.version import __version__
 
-execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)),'pycclib', 'version.py'))
+execfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pycclib', 'version.py'))
 
 try:
     from setuptools import setup, find_packages
@@ -15,9 +15,9 @@ except ImportError:
     from setuptools import setup, find_packages
 
 if sys.version_info < (2, 6):
-   required = ['simplejson', 'certifi']
+    required = ['simplejson', 'certifi']
 else:
-   required = ['certifi']
+    required = ['certifi']
 
 required.append('httplib2>=0.7.4')
 
@@ -28,7 +28,7 @@ setup(
     author='cloudControl Team',
     author_email='info@cloudcontrol.de',
     url='https://www.cloudcontrol.com',
-    license = 'Apache 2.0',
+    license='Apache 2.0',
     classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Console',
