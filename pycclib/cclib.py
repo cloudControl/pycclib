@@ -94,11 +94,12 @@ class API():
     request = None
     cache = None
 
-    def __init__(self, token=None, url=None, token_source_url=None, encode_email=False):
+    def __init__(self, token=None, url=None, token_source_url=None, register_addon_url=None, encode_email=False):
         self.set_token(token)
         api_url = url or API_URL
         self.request = Request(token=token, url=api_url)
         self.token_source_url = token_source_url or api_url + '/token/'
+        self.register_addon_url = register_addon_url or api_url
         self.encode_email = encode_email
 
     def check_versions(self):
@@ -277,11 +278,7 @@ class API():
 
     def read_aliases(self, app_name=None, deployment_name=None):
         """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
+            Get a list of aliases.
         """
         content = None
         if app_name and deployment_name:
@@ -370,11 +367,7 @@ class API():
 
     def read_cronjobs(self, app_name=None, deployment_name=None):
         """
-            Get a list of addons.
-
-            If app_name and deployment_name are None it will return a list
-            of available addons. Otherwise a list of addons related to that
-            deployment.
+            Get a list of cronjobs.
         """
         content = None
         if app_name and deployment_name:
@@ -404,9 +397,23 @@ class API():
         self.request.delete(resource)
         return True
 
+    def register_addon(self, email, password, data):
+        """
+            Register a new addon on the platform.
+
+            The addon manifest content needs to be passed via the data argument.
+        """
+        request = Request(
+            email=email,
+            password=password,
+            url=self.register_addon_url,
+            encode_email=self.encode_email)
+        content = request.post('/provider/addons', data, json_data=True)
+        return json.loads(content)
+
     def create_addon(self, app_name, deployment_name, addon_name, options=None):
         """
-            Add an alias to a deployment.
+            Add an addon to a deployment.
         """
         self.requires_token()
         resource = '/app/%s/deployment/%s/addon/' % (app_name, deployment_name)
@@ -856,11 +863,11 @@ class Request():
         self.ca_certs = CA_CERTS or certifi.where()
         self.encode_email = encode_email
 
-    def post(self, resource, data=None):
+    def post(self, resource, data=None, json_data=False):
         if not data:
             data = {}
 
-        return self.request(resource, method='POST', data=data)
+        return self.request(resource, method='POST', data=data, json_data=json_data)
 
     def get(self, resource):
         return self.request(resource)
@@ -874,7 +881,7 @@ class Request():
     def delete(self, resource):
         return self.request(resource, method='DELETE')
 
-    def request(self, resource, method='GET', data=None, headers=None):
+    def request(self, resource, method='GET', data=None, headers=None, json_data=False):
         """
             we use the excellent httplib2 for all the heavy HTTP protocol
             lifting.
@@ -918,7 +925,10 @@ class Request():
         if data is None:
             body = ''
         else:
-            body = urlencode(data)
+            if json_data:
+                body = json.dumps(data)
+            else:
+                body = urlencode(data)
 
         #
         # We set the Host Header for MacOSX 10.5,
@@ -931,12 +941,13 @@ class Request():
         # the wild.
         #
         headers['User-Agent'] = 'pycclib/%s' % self.version
-        #
-        # The API expects PUT or POST data to be x-www-form-urlencoded so we
-        # also set the correct Content-Type header.
-        #
+
         if method.upper() == 'PUT' or 'POST':
-            headers['Content-Type'] = 'application/x-www-form-urlencoded'
+            if json_data:
+                headers['Content-Type'] = 'application/json'
+            else:
+                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
         #
         # We also set the Content-Length and Accept-Encoding headers.
         #
