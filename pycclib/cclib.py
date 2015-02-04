@@ -97,7 +97,7 @@ class API():
     def __init__(self, token=None, url=None, token_source_url=None, register_addon_url=None, encode_email=False):
         self.set_token(token)
         api_url = url or API_URL
-        self.request = Request(url=api_url)
+        self.request = _Request(url=api_url)
         self.token_source_url = token_source_url or api_url + '/token/'
         if token:
             self.request.set_token_authorization_header(token)
@@ -105,7 +105,7 @@ class API():
         self.encode_email = encode_email
 
     def check_versions(self):
-        version_request = Request(url=self.request.url)
+        version_request = _Request(url=self.request.url)
         content = version_request.get('/.meta/version/')
         return json.loads(content)
 
@@ -131,7 +131,7 @@ class API():
         """
             Sends token creation request to API using basic auth
         """
-        token_request = Request(url=self.token_source_url)
+        token_request = _Request(url=self.token_source_url)
         token_request.set_basic_authorization_header(email, password, self.encode_email)
         return self.token_request(token_request)
 
@@ -139,7 +139,7 @@ class API():
         """
             Sends token creation request to API using ssh auth
         """
-        token_request = Request(url=self.token_source_url)
+        token_request = _Request(url=self.token_source_url)
         token_request.set_sshtoken_authorization_header(email, ssh_token, signature, fingerprint)
         return self.token_request(token_request)
 
@@ -152,7 +152,7 @@ class API():
 
     def create_ssh_token(self):
         try:
-            token_request = Request(url=self.token_source_url)
+            token_request = _Request(url=self.token_source_url)
             token_request.request('', 'POST')
             raise APIException('Expected UnauthorizedError has not been raised')
 
@@ -437,7 +437,7 @@ class API():
 
             The addon manifest content needs to be passed via the data argument.
         """
-        request = Request(url=self.register_addon_url)
+        request = _Request(url=self.register_addon_url)
         request.set_basic_authorization_header(email, password, encode_email=self.encode_email)
         content = request.post('/provider/addons', data, json_data=True)
         return json.loads(content)
@@ -572,7 +572,7 @@ class API():
             Create a new user.
         """
         resource = '/user/'
-        user_request = Request(url=self.request.url)
+        user_request = _Request(url=self.request.url)
         data = {
             'username': name,
             'email': email,
@@ -597,7 +597,7 @@ class API():
         """
         resource = '/user/%s/' % user_name
         if activation_code:
-            user_request = Request(url=self.request.url)
+            user_request = _Request(url=self.request.url)
             data = {'activation_code': activation_code}
             user_request.put(resource, data)
         else:
@@ -866,14 +866,14 @@ class GatewayTimeoutError(APIException):
 
 ###
 #
-# Request Class using httplib2 to fire HTTP requests
+# _Request Class using httplib2 to fire HTTP requests
 #
 ###
 
 
-class Request():
+class _Request():
     """
-        Request is used internally to actually fire API requests. It has some
+        _Request is used internally to actually fire API requests. It has some
         handy shortcut methods for POST, GET, PUT and DELETE, sets correct
         headers for each method, takes care of encoding data and handles all
         API errors by throwing exceptions.
@@ -887,7 +887,7 @@ class Request():
 
     def __init__(self, url=API_URL):
         """
-            When initializing a Request object decide if token auth or email,
+            When initializing a _Request object decide if ssh auth, token auth or email,
             password auth should be used. The class handles both cases
             accordingly.
         """
