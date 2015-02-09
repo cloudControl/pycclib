@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+echo "Install python tools..."
+cd $WORKSPACE
+
+if [[ ! -d "pycclib_venv" ]]; then
+    virtualenv --system-site-packages pycclib_venv
+fi
+source pycclib_venv/bin/activate
+python setup.py install
+
+python setup.py test
