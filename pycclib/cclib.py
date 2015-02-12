@@ -97,13 +97,15 @@ class API():
     def __init__(self, token=None, url=None, token_source_url=None, register_addon_url=None, encode_email=False):
         self.set_token(token)
         api_url = url or API_URL
-        self.request = Request(token=token, url=api_url)
+        self.request = _Request(url=api_url)
         self.token_source_url = token_source_url or api_url + '/token/'
+        if token:
+            self.request.set_token_authorization_header(token)
         self.register_addon_url = register_addon_url or api_url
         self.encode_email = encode_email
 
     def check_versions(self):
-        version_request = Request(url=self.request.url)
+        version_request = _Request(url=self.request.url)
         content = version_request.get('/.meta/version/')
         return json.loads(content)
 
@@ -121,19 +123,51 @@ class API():
 
     def create_token(self, email, password):
         """
-            Queries the API for a new Token and saves it as self._token.
+            Sends token creation request to API using basic auth - for backwards compatibility
         """
-        token_request = Request(
-            email=email,
-            password=password,
-            url=self.token_source_url,
-            encode_email=self.encode_email)
-        content = token_request.post('')
-        token = json.loads(content)
+        return self.create_token_basic_auth(email, password)
 
+    def create_token_basic_auth(self, email, password):
+        """
+            Sends token creation request to API using basic auth
+        """
+        token_request = _Request(url=self.token_source_url)
+        token_request.set_basic_authorization_header(email, password, self.encode_email)
+        return self.token_request(token_request)
+
+    def create_token_ssh_auth(self, email, ssh_token, signature, fingerprint):
+        """
+            Sends token creation request to API using ssh auth
+        """
+        token_request = _Request(url=self.token_source_url)
+        token_request.set_sshtoken_authorization_header(email, ssh_token, signature, fingerprint)
+        return self.token_request(token_request)
+
+    def token_request(self, token_request):
+        content = token_request.request('', 'POST')
+        token = json.loads(content)
         self.set_token(token)
-        self.request.token = token
+        self.request.set_token_authorization_header(token)
         return True
+
+    def create_ssh_token(self):
+        try:
+            token_request = _Request(url=self.token_source_url)
+            token_request.request('', 'POST')
+            raise APIException('Expected UnauthorizedError has not been raised')
+
+        except UnauthorizedError as e:
+            result = httplib2._parse_www_authenticate(e.response)
+
+            try:
+                ssh_token = result['ccssh']['sshtoken']
+            except KeyError, TypeError:
+                raise APIException('SSH token was not created')
+
+            if not ssh_token:
+                raise APIException('Empty SSH token.')
+
+            return ssh_token
 
     def check_token(self):
         """
@@ -403,11 +437,8 @@ class API():
 
             The addon manifest content needs to be passed via the data argument.
         """
-        request = Request(
-            email=email,
-            password=password,
-            url=self.register_addon_url,
-            encode_email=self.encode_email)
+        request = _Request(url=self.register_addon_url)
+        request.set_basic_authorization_header(email, password, encode_email=self.encode_email)
         content = request.post('/provider/addons', data, json_data=True)
         return json.loads(content)
 
@@ -541,7 +572,7 @@ class API():
             Create a new user.
         """
         resource = '/user/'
-        user_request = Request(url=self.request.url)
+        user_request = _Request(url=self.request.url)
         data = {
             'username': name,
             'email': email,
@@ -566,7 +597,7 @@ class API():
         """
         resource = '/user/%s/' % user_name
         if activation_code:
-            user_request = Request(url=self.request.url)
+            user_request = _Request(url=self.request.url)
             data = {'activation_code': activation_code}
             user_request.put(resource, data)
         else:
@@ -680,14 +711,23 @@ class API():
 ###
 
 
-class ConnectionException(Exception):
+class APIException(Exception):
+
+    response = None
+
+    def __init__(self, message=None, resp=None):
+        super(Exception, self).__init__(message)
+        self.response = resp
+
+
+class ConnectionException(APIException):
     """
         We raise this exception if the API was unreachable.
     """
     pass
 
 
-class TokenRequiredError(Exception):
+class TokenRequiredError(APIException):
     """
         We raise this exception if a method requires a token but self._token
         is none.
@@ -699,7 +739,7 @@ class TokenRequiredError(Exception):
         return 'No valid token. Use create_token(email, password) to get one'
 
 
-class BadRequestError(Exception):
+class BadRequestError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 400
         BAD REQUEST.
@@ -724,7 +764,7 @@ class BadRequestError(Exception):
         return msg
 
 
-class UnauthorizedError(Exception):
+class UnauthorizedError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 401
         UNAUTHORIZED.
@@ -732,7 +772,7 @@ class UnauthorizedError(Exception):
     pass
 
 
-class ForbiddenError(Exception):
+class ForbiddenError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 403
         FORBIDDEN.
@@ -740,7 +780,7 @@ class ForbiddenError(Exception):
     pass
 
 
-class NotFoundError(Exception):
+class NotFoundError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 404
         NOT FOUND.
@@ -748,7 +788,7 @@ class NotFoundError(Exception):
     pass
 
 
-class ConflictDuplicateError(Exception):
+class ConflictDuplicateError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 409
         DUPLICATE ENTRY.
@@ -756,7 +796,7 @@ class ConflictDuplicateError(Exception):
     pass
 
 
-class GoneError(Exception):
+class GoneError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 410
         GONE.
@@ -764,7 +804,7 @@ class GoneError(Exception):
     pass
 
 
-class InternalServerError(Exception):
+class InternalServerError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 500
         INTERNAL SERVER ERROR.
@@ -772,7 +812,7 @@ class InternalServerError(Exception):
     pass
 
 
-class NotImplementedError(Exception):
+class NotImplementedError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 501
         NOT IMPLEMENTED.
@@ -780,7 +820,7 @@ class NotImplementedError(Exception):
     pass
 
 
-class ThrottledError(Exception):
+class ThrottledError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 503
         THROTTLED.
@@ -808,7 +848,7 @@ class ThrottledError(Exception):
         return msg[:-1]
 
 
-class UnprocessableEntityError(Exception):
+class UnprocessableEntityError(APIException):
     """
         We raise this exception whenever the API answers with HTTP STATUS 422
         UNPROCESSABLE ENTITY.
@@ -816,30 +856,28 @@ class UnprocessableEntityError(Exception):
     pass
 
 
-class BadGatewayError(Exception):
+class BadGatewayError(APIException):
     pass
 
 
-class GatewayTimeoutError(Exception):
+class GatewayTimeoutError(APIException):
     pass
 
 
 ###
 #
-# Request Class using httplib2 to fire HTTP requests
+# _Request Class using httplib2 to fire HTTP requests
 #
 ###
 
 
-class Request():
+class _Request():
     """
-        Request is used internally to actually fire API requests. It has some
+        _Request is used internally to actually fire API requests. It has some
         handy shortcut methods for POST, GET, PUT and DELETE, sets correct
         headers for each method, takes care of encoding data and handles all
         API errors by throwing exceptions.
     """
-    email = None
-    password = None
     token = None
     version = None
     cache = None
@@ -847,21 +885,18 @@ class Request():
     disable_ssl_check = None
     ca_certs = None
 
-    def __init__(self, email=None, password=None, token=None, url=API_URL, encode_email=False):
+    def __init__(self, url=API_URL):
         """
-            When initializing a Request object decide if token auth or email,
+            When initializing a _Request object decide if ssh auth, token auth or email,
             password auth should be used. The class handles both cases
             accordingly.
         """
-        self.email = email
-        self.password = password
-        self.token = token
         self.version = VERSION
         self.cache = CACHE
         self.url = url
         self.disable_ssl_check = DISABLE_SSL_CHECK
         self.ca_certs = CA_CERTS or certifi.where()
-        self.encode_email = encode_email
+        self.headers = {}
 
     def post(self, resource, data=None, json_data=False):
         if not data:
@@ -881,13 +916,27 @@ class Request():
     def delete(self, resource):
         return self.request(resource, method='DELETE')
 
+    def set_basic_authorization_header(self, email, password, encode_email=False):
+        if encode_email:
+            email = urllib.quote(email)
+        self.headers['Authorization'] = 'Basic ' + base64.b64encode("%s:%s" % (email, password)).strip()
+
+    def set_token_authorization_header(self, token):
+        self.token = token
+        self.headers['Authorization'] = 'cc_auth_token="%s"' % (token['token'])
+
+    def set_sshtoken_authorization_header(self, email, ssh_token, signature, fingerprint):
+        auth_string = 'signature={0},fingerprint={1},sshtoken={2},email={3}'.format(
+            signature, fingerprint, ssh_token, email)
+        self.headers['Authorization'] = 'ccssh ' + auth_string
+
     def request(self, resource, method='GET', data=None, headers=None, json_data=False):
         """
             we use the excellent httplib2 for all the heavy HTTP protocol
             lifting.
         """
-        if not headers:
-            headers = {}
+        if headers:
+            self.headers.update(headers)
 
         url = urlparse(self.url + resource)
         h = httplib2.Http()
@@ -900,23 +949,6 @@ class Request():
 
         if self.ca_certs:
             h.ca_certs = self.ca_certs
-
-        #
-        # If the current API instance has a valid token we add
-        # the Authorization
-        # header with the correct token.
-        #
-        # In case we do not have a valid token but email and password are
-        # provided we automatically use them to add a HTTP Basic Authentication
-        # header to the request to create a new token.
-        #
-        if self.token is not None:
-            headers['Authorization'] = 'cc_auth_token="%s"' % \
-                (self.token['token'])
-        elif self.email is not None and self.password is not None:
-            if self.encode_email:
-                self.email = urllib.quote(self.email)
-            headers['authorization'] = 'Basic ' + base64.b64encode("%s:%s" % (self.email, self.password)).strip()
 
         #
         # The API expects the body to be url-encoded. If data was passed to
@@ -934,25 +966,25 @@ class Request():
         # We set the Host Header for MacOSX 10.5,
         # to circumvent the NotFoundError
         #
-        headers['Host'] = url.hostname
+        self.headers['Host'] = url.hostname
         #
         # We set the User-Agent Header to pycclib and the local version.
         # This enables basic statistics about still used pycclib versions in
         # the wild.
         #
-        headers['User-Agent'] = 'pycclib/%s' % self.version
+        self.headers['User-Agent'] = 'pycclib/%s' % self.version
 
         if method.upper() == 'PUT' or 'POST':
             if json_data:
-                headers['Content-Type'] = 'application/json'
+                self.headers['Content-Type'] = 'application/json'
             else:
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                self.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
         #
         # We also set the Content-Length and Accept-Encoding headers.
         #
-        headers['Content-Length'] = str(len(body))
-        headers['Accept-Encoding'] = 'compress, gzip'
+        self.headers['Content-Length'] = str(len(body))
+        self.headers['Accept-Encoding'] = 'compress, gzip'
 
         #
         # Debug HTTP requests
@@ -970,7 +1002,7 @@ class Request():
                     url.geturl(),
                     method.upper(),
                     body=body,
-                    headers=headers)
+                    headers=self.headers)
 
                 if DEBUG:
                     print 'DEBUG(resp)>>> {0}'.format(repr(resp))
@@ -1004,7 +1036,7 @@ class Request():
         elif resp.status == 400:
             raise BadRequestError(content.decode('UTF8'))
         elif resp.status == 401:
-            raise UnauthorizedError(content.decode('UTF8'))
+            raise UnauthorizedError(content.decode('UTF8'), resp)
         elif resp.status == 403:
             raise ForbiddenError(content.decode('UTF8'))
         elif resp.status == 404:
