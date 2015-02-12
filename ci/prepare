@@ -7,6 +7,6 @@ if [[ ! -d "pycclib_venv" ]]; then
     virtualenv --system-site-packages pycclib_venv
 fi
 source pycclib_venv/bin/activate
+pip install -r requirements_test.txt
 python setup.py install
-
 python setup.py test
