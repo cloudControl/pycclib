@@ -99,6 +99,7 @@ class API():
         api_url = url or API_URL
         self.request = _Request(url=api_url)
         self.token_source_url = token_source_url or api_url + '/token/'
+        self.ssh_token_source_url = api_url + '/token/'
         if token:
             self.request.set_token_authorization_header(token)
         self.register_addon_url = register_addon_url or api_url
@@ -139,7 +140,7 @@ class API():
         """
             Sends token creation request to API using ssh auth
         """
-        token_request = _Request(url=self.token_source_url)
+        token_request = _Request(url=self.ssh_token_source_url)
         token_request.set_sshtoken_authorization_header(email, ssh_token, signature, fingerprint)
         return self.token_request(token_request)
 
@@ -152,7 +153,7 @@ class API():
 
     def create_ssh_token(self):
         try:
-            token_request = _Request(url=self.token_source_url)
+            token_request = _Request(url=self.ssh_token_source_url)
             token_request.request('', 'POST')
             raise APIException('Expected UnauthorizedError has not been raised')
 
